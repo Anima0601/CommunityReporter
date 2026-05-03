@@ -1,9 +1,10 @@
 import { Sequelize } from "sequelize";
-
+import { configDotenv } from "dotenv";
+configDotenv();
 const sequelize = new Sequelize(
-  "communityreporter",
-  "postgres",
-  "Srijan@1234",
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
   {
     host: "localhost",
     dialect: "postgres",
@@ -13,7 +14,7 @@ const sequelize = new Sequelize(
 
 export const initDB = async () => {
   try {
-    await sequelize.authenticate(); //validates connection to db
+    await sequelize.authenticate(); //validates connection to dba
     console.log("database authenticated");
     await sequelize.sync({ alter: true }); //creates table using models
     console.log("Db synced");
