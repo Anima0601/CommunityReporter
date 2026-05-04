@@ -5,18 +5,21 @@ import {
   updateReportStatus,
   getReportById,
   toggleUpvote,
+  deleteReport
 } from "../controllers/reportController.js";
+import { protect, admin } from "../middlewares/authMiddleware.js";
+import { upload } from "../config/cloudinary.js";
 
 const router = express.Router();
 
-router.post("/", createReport);
+router.post("/", protect, upload.single("image"), createReport);
 router.get("/", getAllReports);
 
 // New routes for specific IDs
 router.get("/:id", getReportById);
-router.patch("/:id/status", updateReportStatus); // PATCH is best for partial updates
+router.delete("/:id", protect, deleteReport);
 
 // The upvote route
-router.post("/:id/upvote", toggleUpvote);
+router.post("/:id/upvote", protect, toggleUpvote);
 
 export default router;
