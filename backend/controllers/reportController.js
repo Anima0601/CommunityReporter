@@ -4,11 +4,12 @@ import { Report, User, Vote, Comment } from "../models/index.js";
 // Create a new report
 export const createReport = async (req, res) => {
   try {
-    const { title, description, category, latitude, longitude, address } = req.body;
-    
+    const { title, description, category, latitude, longitude, address } =
+      req.body;
+
     // Check if an image was uploaded via Cloudinary multer
     const imageUrl = req.file ? req.file.path : null;
-    
+
     const newReport = await Report.create({
       title,
       description,
@@ -17,12 +18,12 @@ export const createReport = async (req, res) => {
       longitude,
       address,
       imageUrl,
-      userId: req.user.id // From auth middleware
+      userId: req.user.id, // From auth middleware
     });
-    
+
     res.status(201).json(newReport);
   } catch (error) {
-    console.error("Error creating report:", error);
+    console.error("Error creating report:", error.message);
     res.status(500).json({ error: "Failed to create report" });
   }
 };
@@ -31,14 +32,14 @@ export const createReport = async (req, res) => {
 export const getAllReports = async (req, res) => {
   try {
     const { category, status, search } = req.query;
-    
+
     // Build query filter
     const whereClause = {};
     if (category) whereClause.category = category;
     if (status) whereClause.status = status;
     if (search) {
       whereClause.title = {
-        [Op.iLike]: `%${search}%`
+        [Op.iLike]: `%${search}%`,
       };
     }
 
@@ -48,22 +49,22 @@ export const getAllReports = async (req, res) => {
         {
           model: User,
           as: "author",
-          attributes: ["id", "name", "email"]
+          attributes: ["id", "name", "email"],
         },
         {
           model: Comment,
           include: [{ model: User, as: "author", attributes: ["name"] }],
-          attributes: ["id", "text", "createdAt"]
+          attributes: ["id", "text", "createdAt"],
         },
         {
           model: User,
           as: "upvoters",
-          attributes: ["id"]
-        }
+          attributes: ["id"],
+        },
       ],
-      order: [["createdAt", "DESC"]]
+      order: [["createdAt", "DESC"]],
     });
-    
+
     res.status(200).json(reports);
   } catch (error) {
     console.error("Error fetching reports:", error);
@@ -79,7 +80,7 @@ export const getReportById = async (req, res) => {
         {
           model: User,
           as: "author",
-          attributes: ["id", "name", "email"]
+          attributes: ["id", "name", "email"],
         },
         {
           model: Comment,
@@ -87,18 +88,20 @@ export const getReportById = async (req, res) => {
             {
               model: User,
               as: "author",
-              attributes: ["id", "name"]
+              attributes: ["id", "name"],
             },
             {
               model: Comment, // Nested replies
               as: "replies",
-              include: [{ model: User, as: "author", attributes: ["id", "name"] }]
-            }
+              include: [
+                { model: User, as: "author", attributes: ["id", "name"] },
+              ],
+            },
           ],
           where: { parentId: null }, // Only top-level comments at root
-          required: false // Don't fail if no comments
-        }
-      ]
+          required: false, // Don't fail if no comments
+        },
+      ],
     });
 
     if (!report) {
@@ -179,8 +182,10 @@ export const deleteReport = async (req, res) => {
     }
 
     // Check if user is the author or an admin
-    if (report.userId !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({ error: "Not authorized to delete this report" });
+    if (report.userId !== req.user.id && req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "Not authorized to delete this report" });
     }
 
     await report.destroy();
